@@ -62,6 +62,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
+const {
+  BAD_REQUEST_ERROR,
+  NOT_FOUND_ERROR,
+  SERVER_ERROR,
+  CONFLICT_ERROR,
+} = require("../utils/error");
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -70,7 +76,7 @@ const createUser = (req, res) => {
     .then((existingUser) => {
       if (existingUser) {
         return res
-          .status(409)
+          .status(CONFLICT_ERROR)
           .send({ message: "User with this email already exists" });
       }
 
@@ -88,10 +94,10 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: "Invalid data" });
+        return res.status(BAD_REQUEST_ERROR).send({ message: "Invalid data" });
       }
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
 };
@@ -108,7 +114,9 @@ const login = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      return res.status(401).send({ message: "Incorrect email or password" });
+      return res
+        .status(BAD_REQUEST_ERROR)
+        .send({ message: "Incorrect email or password" });
     });
 };
 
@@ -118,14 +126,14 @@ const getCurrentUser = (req, res) => {
   User.findById(_id)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
       }
       return res.send(user);
     })
     .catch((err) => {
       console.error(err);
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
 };
@@ -141,17 +149,17 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
       }
       return res.send(user);
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: "Invalid data" });
+        return res.status(BAD_REQUEST_ERROR).send({ message: "Invalid data" });
       }
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
 };

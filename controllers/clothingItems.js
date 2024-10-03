@@ -1,10 +1,10 @@
 const Item = require("../models/clothingItems");
-
-// Status code constants
-const BAD_REQUEST_ERROR = 400;
-const NOT_FOUND_ERROR = 404;
-const FORBIDDEN_ERROR = 403;
-const SERVER_ERROR = 500;
+const {
+  BAD_REQUEST_ERROR,
+  NOT_FOUND_ERROR,
+  FORBIDDEN_ERROR,
+  SERVER_ERROR,
+} = require("../utils/error");
 
 const getItems = (req, res) => {
   Item.find({})
