@@ -62,7 +62,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
-const { defaultError, castError } = require("../utils/error");
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -87,10 +86,13 @@ const createUser = (req, res) => {
         );
     })
     .catch((err) => {
+      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(400).send({ message: "Invalid data" });
       }
-      res.status(500).send({ message: "An error has occurred on the server" });
+      return res
+        .status(500)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -104,9 +106,10 @@ const login = (req, res) => {
       });
       res.send({ token });
     })
-    .catch(() =>
-      res.status(401).send({ message: "Incorrect email or password" })
-    );
+    .catch((err) => {
+      console.error(err);
+      return res.status(401).send({ message: "Incorrect email or password" });
+    });
 };
 
 const getCurrentUser = (req, res) => {
@@ -117,11 +120,14 @@ const getCurrentUser = (req, res) => {
       if (!user) {
         return res.status(404).send({ message: "User not found" });
       }
-      res.send(user);
+      return res.send(user);
     })
-    .catch(() =>
-      res.status(500).send({ message: "An error has occurred on the server" })
-    );
+    .catch((err) => {
+      console.error(err);
+      return res
+        .status(500)
+        .send({ message: "An error has occurred on the server" });
+    });
 };
 
 const updateUser = (req, res) => {
@@ -137,13 +143,16 @@ const updateUser = (req, res) => {
       if (!user) {
         return res.status(404).send({ message: "User not found" });
       }
-      res.send(user);
+      return res.send(user);
     })
     .catch((err) => {
+      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(400).send({ message: "Invalid data" });
       }
-      res.status(500).send({ message: "An error has occurred on the server" });
+      return res
+        .status(500)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
