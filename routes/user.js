@@ -1,10 +1,3 @@
-// const express = require("express");
-// const { getUsers, getUser } = require("../controllers/user");
-
-// const router = express.Router();
-
-// module.exports = router;
-
 const express = require("express");
 const { getCurrentUser, updateUser } = require("../controllers/user");
 
