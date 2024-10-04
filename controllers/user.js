@@ -64,9 +64,10 @@ const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 const {
   BAD_REQUEST_ERROR,
-  NOT_FOUND_ERROR,
+  UNAUTHORIZED_ERROR,
   SERVER_ERROR,
   CONFLICT_ERROR,
+  NOT_FOUND_ERROR,
 } = require("../utils/error");
 
 const createUser = (req, res) => {
@@ -105,30 +106,46 @@ const createUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  // Check if email or password is missing
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST_ERROR)
+      .send({ message: "Email and password are required" });
+  }
+
+  // Proceed with authentication
+  return User.findUserByCredentials(email, password) // Add return here
     .then((user) => {
+      // If user is found, generate a token
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.send({ token });
+      return res.send({ token }); // Return the response
     })
     .catch((err) => {
+      // Check for incorrect email or password
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED_ERROR)
+          .send({ message: "Incorrect email or password" });
+      }
+      // Handle all other errors as server errors
       console.error(err);
       return res
-        .status(BAD_REQUEST_ERROR)
-        .send({ message: "Incorrect email or password" });
+        .status(SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
 const getCurrentUser = (req, res) => {
   const { _id } = req.user;
 
-  User.findById(_id)
+  return User.findById(_id)
     .then((user) => {
       if (!user) {
         return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
       }
-      return res.send(user);
+      return res.send(user); // Always return a value
     })
     .catch((err) => {
       console.error(err);
