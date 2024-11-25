@@ -33,7 +33,6 @@ const createUser = (req, res) => {
         );
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST_ERROR).send({ message: "Invalid data" });
       }
@@ -46,31 +45,25 @@ const createUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  // Check if email or password is missing
   if (!email || !password) {
     return res
       .status(BAD_REQUEST_ERROR)
       .send({ message: "Email and password are required" });
   }
 
-  // Proceed with authentication
-  return User.findUserByCredentials(email, password) // Add return here
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      // If user is found, generate a token
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return res.send({ token }); // Return the response
+      return res.send({ token });
     })
     .catch((err) => {
-      // Check for incorrect email or password
       if (err.message === "Incorrect email or password") {
         return res
           .status(UNAUTHORIZED_ERROR)
           .send({ message: "Incorrect email or password" });
       }
-      // Handle all other errors as server errors
-      console.error(err);
       return res
         .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
@@ -80,16 +73,15 @@ const login = (req, res) => {
 const getCurrentUser = (req, res) => {
   const { _id } = req.user;
 
-  return User.findById(_id)
+  User.findById(_id)
     .then((user) => {
       if (!user) {
         return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
       }
-      return res.send(user); // Always return a value
+      return res.send(user);
     })
-    .catch((err) => {
-      console.error(err);
-      return res
+    .catch(() => {
+      res
         .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
@@ -111,7 +103,6 @@ const updateUser = (req, res) => {
       return res.send(user);
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST_ERROR).send({ message: "Invalid data" });
       }

@@ -9,12 +9,11 @@ const {
 const getItems = (req, res) => {
   Item.find({})
     .then((items) => res.status(200).send(items))
-    .catch((err) => {
-      console.error(err);
-      return res
+    .catch(() =>
+      res
         .status(SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+        .send({ message: "An error has occurred on the server" })
+    );
 };
 
 const createItem = (req, res) => {
@@ -24,7 +23,6 @@ const createItem = (req, res) => {
   Item.create({ name, weather, imageUrl, owner })
     .then((item) => res.status(201).send(item))
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST_ERROR).send({ message: "Invalid data" });
       }
@@ -50,22 +48,11 @@ const deleteItem = (req, res) => {
           .send({ message: "You do not have permission to delete this item" });
       }
 
-      return Item.findByIdAndDelete(itemId)
-        .then((deletedItem) => res.status(200).send(deletedItem))
-        .catch((err) => {
-          console.error(err);
-          if (err.name === "CastError") {
-            return res
-              .status(BAD_REQUEST_ERROR)
-              .send({ message: "Invalid item ID" });
-          }
-          return res
-            .status(SERVER_ERROR)
-            .send({ message: "An error has occurred on the server" });
-        });
+      return Item.findByIdAndDelete(itemId).then((deletedItem) =>
+        res.status(200).send(deletedItem)
+      );
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "CastError") {
         return res
           .status(BAD_REQUEST_ERROR)
@@ -79,21 +66,16 @@ const deleteItem = (req, res) => {
 
 const likeItem = (req, res) => {
   const { itemId } = req.params;
+
   Item.findByIdAndUpdate(
     itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND_ERROR).send({ message: "Item not found" });
-      }
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: "Invalid item ID" });
       }
       return res
         .status(SERVER_ERROR)
@@ -103,21 +85,16 @@ const likeItem = (req, res) => {
 
 const dislikeItem = (req, res) => {
   const { itemId } = req.params;
+
   Item.findByIdAndUpdate(
     itemId,
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND_ERROR).send({ message: "Item not found" });
-      }
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: "Invalid item ID" });
       }
       return res
         .status(SERVER_ERROR)

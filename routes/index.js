@@ -4,13 +4,14 @@ const usersRouter = require("./user");
 const itemsRouter = require("./clothingItems");
 const { login, createUser } = require("../controllers/user");
 const { getItems } = require("../controllers/clothingItems");
-const { NOT_FOUND_ERROR } = require("../utils/error"); // Import the error constant
+const { validateSignup, validateLogin } = require("../middlewares/validation");
+const { NOT_FOUND_ERROR } = require("../utils/error");
 
 const router = express.Router();
 
 // Public routes
-router.post("/signin", login);
-router.post("/signup", createUser);
+router.post("/signin", validateLogin, login);
+router.post("/signup", validateSignup, createUser);
 router.get("/items", getItems); // Public route for getting items
 
 // Protected routes
