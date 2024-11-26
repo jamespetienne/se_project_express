@@ -9,12 +9,11 @@
 // const mainRouter = require("./routes/index");
 // const errorHandler = require("./middlewares/errorHandler"); // Centralized error handler
 
-// require("dotenv").config(); // Load environment variables from .env
-
 // const app = express();
 // const { PORT = 3001 } = process.env;
 
 // // Connect to MongoDB
+// mongoose.set("strictQuery", true); // Suppress the deprecation warning
 // mongoose
 //   .connect("mongodb://127.0.0.1:27017/wtwr_db")
 //   .then(() => {
@@ -92,7 +91,27 @@ mongoose
 
 // Middleware
 app.use(express.json()); // Parse JSON requests
-app.use(cors()); // Enable CORS
+
+// Configure CORS
+const allowedOrigins = [
+  "https://wtwr-project.twilightparadox.com", // Frontend production URL
+  "http://localhost:3000", // Frontend development URL
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed for this origin"));
+      }
+    },
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT"], // Allowed HTTP methods
+    credentials: true, // Allow cookies and credentials
+  })
+);
 
 // Crash test route
 app.get("/crash-test", () => {
