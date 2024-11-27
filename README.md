@@ -1,5 +1,7 @@
 # WTWR (What to Wear) - Backend Project
 
+Backend: [api.wtwr-project.twilightparadox.com](https://api.wtwr-project.twilightparadox.com)
+
 ## Description
 
 The **WTWR (What to Wear)** project is a backend application designed to complement the frontend, which was previously built in earlier sprints. The purpose of this backend is to provide an API and user authorization for the WTWR application. This backend server connects to a MongoDB database, processes client requests, and performs operations like creating users, managing clothing items, and handling user authentication.
