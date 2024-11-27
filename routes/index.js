@@ -5,7 +5,7 @@ const itemsRouter = require("./clothingItems");
 const { login, createUser } = require("../controllers/user");
 const { getItems } = require("../controllers/clothingItems");
 const { validateSignup, validateLogin } = require("../middlewares/validation");
-const { NOT_FOUND_ERROR } = require("../utils/error");
+const NotFoundError = require("../errors/NotFoundError"); // Import the custom error class
 
 const router = express.Router();
 
@@ -20,8 +20,8 @@ router.use("/users", usersRouter); // User routes
 router.use("/items", itemsRouter); // Protected item routes (create, delete, like, dislike)
 
 // Catch-all for unknown routes
-router.use((req, res) =>
-  res.status(NOT_FOUND_ERROR).send({ message: "Requested resource not found" })
-);
+router.use((req, res, next) => {
+  next(new NotFoundError("Requested resource not found")); // Throw an error instead of sending a response
+});
 
 module.exports = router;
