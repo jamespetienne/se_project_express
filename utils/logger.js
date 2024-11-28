@@ -13,4 +13,16 @@ const errorLogger = expressWinston.errorLogger({
   format: winston.format.json(),
 });
 
-module.exports = { requestLogger, errorLogger };
+// General-purpose logger
+const generalLogger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [
+    // Log to the console
+    new winston.transports.Console(),
+    // Log to a file
+    new winston.transports.File({ filename: "server.log" }),
+  ],
+});
+
+module.exports = { requestLogger, errorLogger, generalLogger };

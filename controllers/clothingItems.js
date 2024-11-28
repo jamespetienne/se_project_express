@@ -1,13 +1,14 @@
 const Item = require("../models/clothingItems");
 const NotFoundError = require("../errors/NotFoundError");
 const BadRequestError = require("../errors/BadRequestError");
+const ForbiddenError = require("../errors/ForbiddenError");
 
 const getItems = async (req, res, next) => {
   try {
     const items = await Item.find({});
-    res.status(200).send(items);
+    return res.status(200).send(items);
   } catch (err) {
-    next(err); // Pass any unhandled error to the error handler
+    return next(err);
   }
 };
 
@@ -17,17 +18,18 @@ const createItem = async (req, res, next) => {
 
   try {
     const item = await Item.create({ name, weather, imageUrl, owner });
-    res.status(201).send(item);
+    return res.status(201).send(item);
   } catch (err) {
     if (err.name === "ValidationError") {
       return next(new BadRequestError("Invalid data"));
     }
-    next(err);
+    return next(err);
   }
 };
 
 const deleteItem = async (req, res, next) => {
   const { itemId } = req.params;
+  const currentUserId = req.user._id;
 
   try {
     const item = await Item.findById(itemId);
@@ -36,13 +38,19 @@ const deleteItem = async (req, res, next) => {
       throw new NotFoundError("Item not found");
     }
 
+    if (item.owner.toString() !== currentUserId) {
+      throw new ForbiddenError(
+        "You do not have permission to delete this item"
+      );
+    }
+
     const deletedItem = await Item.findByIdAndDelete(itemId);
-    res.status(200).send(deletedItem);
+    return res.status(200).send(deletedItem);
   } catch (err) {
     if (err.name === "CastError") {
       return next(new BadRequestError("Invalid item ID"));
     }
-    next(err);
+    return next(err);
   }
 };
 
@@ -57,15 +65,12 @@ const likeItem = async (req, res, next) => {
     );
 
     if (!item) {
-      throw new NotFoundError("Item not found");
+      return next(new NotFoundError("Item not found"));
     }
 
-    res.status(200).send(item);
+    return res.status(200).send(item);
   } catch (err) {
-    if (err.name === "CastError") {
-      return next(new BadRequestError("Invalid item ID"));
-    }
-    next(err);
+    return next(err);
   }
 };
 
@@ -80,15 +85,12 @@ const dislikeItem = async (req, res, next) => {
     );
 
     if (!item) {
-      throw new NotFoundError("Item not found");
+      return next(new NotFoundError("Item not found"));
     }
 
-    res.status(200).send(item);
+    return res.status(200).send(item);
   } catch (err) {
-    if (err.name === "CastError") {
-      return next(new BadRequestError("Invalid item ID"));
-    }
-    next(err);
+    return next(err);
   }
 };
 

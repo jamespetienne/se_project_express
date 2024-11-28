@@ -5,6 +5,7 @@ const { JWT_SECRET } = require("../utils/config");
 const NotFoundError = require("../errors/NotFoundError");
 const BadRequestError = require("../errors/BadRequestError");
 const ConflictError = require("../errors/ConflictError");
+const UnauthorizedError = require("../errors/UnauthorizedError");
 
 const createUser = async (req, res, next) => {
   const { name, avatar, email, password } = req.body;
@@ -24,14 +25,14 @@ const createUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    res
+    return res
       .status(201)
       .send({ name: user.name, avatar: user.avatar, email: user.email });
   } catch (err) {
     if (err.name === "ValidationError") {
       return next(new BadRequestError("Invalid data"));
     }
-    next(err);
+    return next(err);
   }
 };
 
@@ -45,9 +46,12 @@ const login = async (req, res, next) => {
   try {
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
-    res.send({ token });
+    return res.send({ token });
   } catch (err) {
-    next(err); // Pass error to centralized handler
+    if (err.message === "Incorrect email or password") {
+      return next(new UnauthorizedError("Incorrect email or password"));
+    }
+    return next(err);
   }
 };
 
@@ -58,15 +62,15 @@ const getCurrentUser = async (req, res, next) => {
     const user = await User.findById(_id);
 
     if (!user) {
-      throw new NotFoundError("User not found");
+      return next(new NotFoundError("User not found"));
     }
 
-    res.send(user);
+    return res.send(user);
   } catch (err) {
     if (err.name === "CastError") {
       return next(new BadRequestError("Invalid user ID"));
     }
-    next(err);
+    return next(err);
   }
 };
 
@@ -82,15 +86,15 @@ const updateUser = async (req, res, next) => {
     );
 
     if (!user) {
-      throw new NotFoundError("User not found");
+      return next(new NotFoundError("User not found"));
     }
 
-    res.send(user);
+    return res.send(user);
   } catch (err) {
     if (err.name === "ValidationError") {
       return next(new BadRequestError("Invalid data"));
     }
-    next(err);
+    return next(err);
   }
 };
 

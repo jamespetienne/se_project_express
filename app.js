@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const { errors } = require("celebrate");
 require("dotenv").config();
 
-const { requestLogger, errorLogger } = require("./utils/logger"); // Import loggers
+const { requestLogger, errorLogger, generalLogger } = require("./utils/logger"); // Import loggers
 const mainRouter = require("./routes/index");
 const errorHandler = require("./middlewares/errorHandler");
 const limiter = require("./middlewares/rateLimiter");
@@ -19,10 +19,10 @@ mongoose.set("strictQuery", true);
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
   .then(() => {
-    console.log("Connected to Database");
+    generalLogger.info("Connected to Database");
   })
   .catch((err) => {
-    console.error("Database connection error:", err);
+    generalLogger.error("Database connection error:", err);
   });
 
 // Middleware
@@ -50,15 +50,15 @@ app.use(
   })
 );
 
+// Request logging
+app.use(requestLogger);
+
 // Crash test route
 app.get("/crash-test", () => {
   setTimeout(() => {
     throw new Error("Server will crash now");
   }, 0);
 });
-
-// Request logging
-app.use(requestLogger); // Use the imported request logger
 
 // Main routes
 app.use("/", mainRouter);
@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 });
 
 // Error logging
-app.use(errorLogger); // Use the imported error logger
+app.use(errorLogger);
 
 // Celebrate error handling
 app.use(errors());
@@ -79,5 +79,5 @@ app.use(errorHandler);
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  generalLogger.info(`Server is running on port ${PORT}`);
 });
